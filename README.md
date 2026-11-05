@@ -19,28 +19,22 @@
 
 HMG-API가 설치되어 있으면 앱을 열어 버전과 **Hooks on** 상태를 확인하세요. 앱 아이콘이 보이지 않으면 **NEMESIS Manager → My Packages → HMG-API → Launch**로 열 수 있습니다. **Hooks off**이거나 차량·펌웨어가 다르면 적용 전에 [HMG-API 차량 지원 안내](https://github.com/VysseCodes/HMG-API/wiki/Supported-cars)를 확인하세요.
 
-### HMG-API를 먼저 설치하거나 업데이트해야 하는 경우
-
-NEMESIS 1.16 이상에서 **Package Store**를 사용할 수 있습니다. [HMG-API 1.0.2 릴리스](https://github.com/VysseCodes/HMG-API/releases/tag/v1.0.2)에서 `hmgapi-1.0.2-nemesis.zip`을 받아 USB 루트에 압축을 풉니다. 차량에서 **NEMESIS Manager → Package Store → HMG-API**를 선택하고, 설치 또는 업데이트가 끝나면 헤드유닛을 재시작하세요. [공식 NEMESIS 설치 절차](https://github.com/VysseCodes/HMG-API/wiki/Installing-HMG-API#nemesis)
-
-HMG-API 업데이트와 EV6 TBT 설치에 **같은 USB**를 쓸 수 있습니다. 두 파일은 아래처럼 위치가 다릅니다. HMG-API가 준비된 상태라면 `HMGAPI/updates/`에 있는 TBT ZIP만 있으면 됩니다.
-
-```text
-USB 루트/
-├── NEMESIS.data                    ← HMG-API를 NEMESIS로 업데이트할 때
-├── packages/
-│   └── hmgapi.zip                  ← HMG-API를 NEMESIS로 업데이트할 때
-└── HMGAPI/
-    └── updates/
-        └── EV6_KR_Wired_CarPlay_TBT_v0.1.3_EXPERIMENTAL.zip
-```
-
-Package Store에 **Wireless CarPlay + Android Auto**가 같이 보일 수 있습니다. 이 모드는 순정 유선 CarPlay를 사용하므로 해당 무선 모드는 설치할 필요가 없습니다.
-
 ## EV6 TBT 설치 및 적용
 
+### 설치 USB 경로
+
+FAT32 또는 exFAT USB의 최상위에 `HMGAPI` 폴더를 만들고, 그 안에 `updates` 폴더를 만드세요. 설치 ZIP을 **압축 해제하지 않고** 아래 위치에 복사합니다.
+
+```text
+F:\HMGAPI\updates\EV6_KR_Wired_CarPlay_TBT_v0.1.3_EXPERIMENTAL.zip
+```
+
+`F:`는 Windows 예시입니다. 탐색기에서 USB에 다른 드라이브 문자가 붙어 있다면 그 문자를 사용하세요.
+
+### 차량에서 설치
+
 1. 위 다운로드 링크 또는 릴리스의 **Assets**에서 `EV6_KR_Wired_CarPlay_TBT_v0.1.3_EXPERIMENTAL.zip`을 받습니다. GitHub가 자동 생성한 **Source code (zip)**은 소스 묶음입니다.
-2. FAT32 또는 exFAT USB에 `HMGAPI/updates/` 폴더를 만들고 **설치 ZIP을 압축 해제하지 않은 상태로** 복사합니다.
+2. 다운로드한 설치 ZIP을 위의 USB 경로에 복사합니다.
 3. 주차 상태에서 USB를 차량의 데이터 포트에 꽂고, **HMG-API 앱 → Check USB updates**를 누릅니다.
 4. 목록에서 **EV6 KOR Wired CarPlay TBT (experimental)** v0.1.3을 선택합니다. 첫 설치에서는 작성자 신뢰 확인이 표시될 수 있습니다.
 5. **Mods**에서 모드가 켜져 있는지 확인하고 **Apply changes**를 누릅니다. 계획에 오류가 표시되면 원인을 확인하고, 재시작 안내가 나오면 따릅니다.
