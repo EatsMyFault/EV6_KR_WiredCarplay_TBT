@@ -1,0 +1,14 @@
+EV6 KOR wired Apple CarPlay TBT v0.1.3 experimental source and local builder.
+The signed mod archive is built from mod/. The signing key is external.
+
+Upstream HMG-API v1.0.1 by VysseCodes, AGPL-3.0:
+https://github.com/VysseCodes/HMG-API
+IONIQ 5 external wireless CarPlay reference by b-lack-kr, AGPL-3.0:
+https://github.com/b-lack-kr/ioniq5-external-wirelss-carplay
+
+This mod is a derivative of HMG-API v1.0.1 and uses ideas from the IONIQ 5
+project. Its CpTurns.java is based on the upstream HMG-API implementation.
+The v0.1.3 changes serialize route refresh with session events and handle
+an empty maneuver list.
+
+Vehicle operation, support, compatibility, and safety are unverified.

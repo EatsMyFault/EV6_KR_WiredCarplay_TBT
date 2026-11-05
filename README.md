@@ -1,0 +1,74 @@
+# EV6 KOR 유선 CarPlay TBT
+
+한국 내수형 EV6의 순정 **유선 Apple CarPlay**에서 지도 앱이 보내는 회전 방향, 거리, 차선 안내를 계기판과 HUD로 전달하는 HMG-API 모드입니다. TBT는 “300m 앞 우회전”처럼 다음 회전을 알려주는 안내를 뜻합니다. 표시되는 항목은 지도 앱이 보내는 정보와 차량의 표시 장비에 따라 달라집니다.
+
+[**v0.1.3 설치 ZIP 다운로드**](https://github.com/EatsMyFault/EV6_KR_WiredCarplay_TBT/releases/download/v0.1.3/EV6_KR_Wired_CarPlay_TBT_v0.1.3_EXPERIMENTAL.zip)
+· [릴리스 페이지](https://github.com/EatsMyFault/EV6_KR_WiredCarplay_TBT/releases/tag/v0.1.3)
+
+> **실험 버전** · PC에서 빌드, 서명 및 모의 동작을 검증했습니다. 국내 EV6에서 계기판·HUD에 실제로 표시되는지는 아직 검증하지 않았습니다. 설치와 첫 확인은 주차 상태에서 진행하세요.
+
+## 설치 전 확인
+
+| 항목 | 요구 사항 |
+| --- | --- |
+| 차량 | 한국 내수형 EV6, 표준형 5W(Gen5W) |
+| 대상 펌웨어 | `CVEV / KOR / 260902` |
+| HMG-API | `1.0.1` 이상. NEMESIS 사용자는 시작 지연을 수정한 `1.0.2` 권장 |
+| 후크 | 해당 차량용 후크 맵이 적용되어 HMG-API에 **Hooks on** 표시 |
+| 연결 | 순정 유선 Apple CarPlay가 동작하는 iPhone, 데이터 USB 포트와 케이블 |
+
+HMG-API가 설치되어 있으면 앱을 열어 버전과 **Hooks on** 상태를 확인하세요. 앱 아이콘이 보이지 않으면 **NEMESIS Manager → My Packages → HMG-API → Launch**로 열 수 있습니다. **Hooks off**이거나 차량·펌웨어가 다르면 적용 전에 [HMG-API 차량 지원 안내](https://github.com/VysseCodes/HMG-API/wiki/Supported-cars)를 확인하세요.
+
+### HMG-API를 먼저 설치하거나 업데이트해야 하는 경우
+
+NEMESIS 1.16 이상에서 **Package Store**를 사용할 수 있습니다. [HMG-API 1.0.2 릴리스](https://github.com/VysseCodes/HMG-API/releases/tag/v1.0.2)에서 `hmgapi-1.0.2-nemesis.zip`을 받아 USB 루트에 압축을 풉니다. 차량에서 **NEMESIS Manager → Package Store → HMG-API**를 선택하고, 설치 또는 업데이트가 끝나면 헤드유닛을 재시작하세요. [공식 NEMESIS 설치 절차](https://github.com/VysseCodes/HMG-API/wiki/Installing-HMG-API#nemesis)
+
+HMG-API 업데이트와 EV6 TBT 설치에 **같은 USB**를 쓸 수 있습니다. 두 파일은 아래처럼 위치가 다릅니다. HMG-API가 준비된 상태라면 `HMGAPI/updates/`에 있는 TBT ZIP만 있으면 됩니다.
+
+```text
+USB 루트/
+├── NEMESIS.data                    ← HMG-API를 NEMESIS로 업데이트할 때
+├── packages/
+│   └── hmgapi.zip                  ← HMG-API를 NEMESIS로 업데이트할 때
+└── HMGAPI/
+    └── updates/
+        └── EV6_KR_Wired_CarPlay_TBT_v0.1.3_EXPERIMENTAL.zip
+```
+
+Package Store에 **Wireless CarPlay + Android Auto**가 같이 보일 수 있습니다. 이 모드는 순정 유선 CarPlay를 사용하므로 해당 무선 모드는 설치할 필요가 없습니다.
+
+## EV6 TBT 설치 및 적용
+
+1. 위 다운로드 링크 또는 릴리스의 **Assets**에서 `EV6_KR_Wired_CarPlay_TBT_v0.1.3_EXPERIMENTAL.zip`을 받습니다. GitHub가 자동 생성한 **Source code (zip)**은 소스 묶음입니다.
+2. FAT32 또는 exFAT USB에 `HMGAPI/updates/` 폴더를 만들고 **설치 ZIP을 압축 해제하지 않은 상태로** 복사합니다.
+3. 주차 상태에서 USB를 차량의 데이터 포트에 꽂고, **HMG-API 앱 → Check USB updates**를 누릅니다.
+4. 목록에서 **EV6 KOR Wired CarPlay TBT (experimental)** v0.1.3을 선택합니다. 첫 설치에서는 작성자 신뢰 확인이 표시될 수 있습니다.
+5. **Mods**에서 모드가 켜져 있는지 확인하고 **Apply changes**를 누릅니다. 계획에 오류가 표시되면 원인을 확인하고, 재시작 안내가 나오면 따릅니다.
+6. 설치 USB를 뺀 뒤 같은 데이터 포트에 iPhone을 케이블로 연결합니다. CarPlay에서 목적지를 설정해 경로 안내를 시작하고, 계기판과 HUD에 각각 무엇이 표시되는지 확인합니다.
+
+기존 EV6 TBT 모드와 같은 ID 및 서명자를 사용하므로 동일한 서명으로 설치된 이전 버전은 위 순서로 업데이트할 수 있습니다. [HMG-API 모드 설치 및 업데이트 안내](https://github.com/VysseCodes/HMG-API/wiki/Installing-and-removing-mods)
+
+## 확인과 문제 해결
+
+| 증상 | 확인할 것 |
+| --- | --- |
+| **Check USB updates**에 모드가 안 보임 | USB의 `HMGAPI/updates/` 아래에 설치용 ZIP이 그대로 있는지 확인합니다. |
+| 모드가 로드되지 않음 | `CVEV / KOR / 260902`, **Hooks on**, 적용 계획의 오류 메시지를 확인합니다. |
+| CarPlay는 열리지만 안내가 안 보임 | 실제 경로 안내를 시작하고 **Mods → 모드 로그** 또는 **Logs**에서 `EV6_TBT_013`을 찾습니다. `REQUEST_START accepted=true`는 요청이 수락됐다는 뜻이고, `RG_RECEIVED`는 차량이 안내 데이터를 받았다는 뜻입니다. `RG_PARSED` 이후 실제 출력은 계기판과 HUD에서 확인합니다. |
+| 사용을 중단하거나 원래 동작으로 돌아가고 싶음 | HMG-API **Mods**에서 EV6 TBT 모드를 **Off** 또는 **Remove**로 바꾸고 **Apply changes**를 누릅니다. 재시작 안내가 나오면 따릅니다. 앱을 열 수 없다면 [HMG-API 문제 해결 안내](https://github.com/VysseCodes/HMG-API/wiki/Troubleshooting)를 확인합니다. |
+
+동작 결과를 남길 때는 전체 펌웨어 버전, HMG-API 버전, 지도 앱 이름, 계기판/HUD 각각의 결과와 관련 로그를 함께 적어 주세요. 공개 이슈에 VIN이나 기기 식별 정보는 포함하지 마세요.
+
+## v0.1.3에서 바뀐 점
+
+- 지도 앱을 바꿀 때의 재구독과 USB 연결 종료를 같은 스레드에서 처리합니다. 연결이 끝나면 예약된 재구독을 취소합니다.
+- 순정 내비가 안내를 가져가면, 새 CarPlay 안내가 감지될 때까지 이전 TBT 메시지와 재구독 요청을 건너뜁니다.
+- 빈 회전 목록을 받으면 다음 안내 데이터를 기다립니다.
+
+PC에서 Android DEX 빌드, 기존 서명자 및 패키지 해시 검증, CarPlay TBT 파서 테스트를 마쳤습니다. 모의 Android 핸들러와 iAP2 서비스로 순정 STOP 및 USB 분리 때 예약된 요청이 취소되는 것도 확인했습니다.
+
+## 소스 및 빌드
+
+모드 소스는 [mod/](mod/)에 있습니다. [BUILD_0.1.3.sh](BUILD_0.1.3.sh)는 Bash/Ubuntu WSL에서 JDK, Python 3, Android SDK의 `android-29`와 `build-tools/35.0.0`, HMG-API v1.0.1의 `out/classes` 및 `out/engine-host`를 사용합니다. `HMGAPI_BUILD`로 HMG-API 빌드 폴더를, `EV6_SIGNING_KEY`로 기존 작성자 키 경로를 지정할 수 있습니다. 배포본의 업데이트 서명을 생성하려면 기존 작성자 키가 필요합니다. 설치에는 키가 필요하지 않습니다.
+
+라이선스는 [AGPL-3.0](LICENSE)입니다. HMG-API 및 참고한 아이오닉 5 프로젝트의 출처는 [NOTICE.txt](NOTICE.txt)에 정리했습니다.

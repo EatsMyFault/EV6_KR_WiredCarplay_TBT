@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "settings": [
+    {
+      "key": "tbt",
+      "type": "toggle",
+      "default": true,
+      "title": "Wired CarPlay turn-by-turn on cluster and HUD (experimental)",
+      "apply": "restart",
+      "description": "Only wired CarPlay TBT; no Wi-Fi, AA, Bluetooth bridge, feature flags or codec patch. Experimental CVEV KOR 260902 only."
+    },
+    {
+      "key": "yield_stock",
+      "type": "toggle",
+      "default": true,
+      "title": "CarPlay TBT 중 순정 내비 계기판 출력 양보",
+      "apply": "restart"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+.build/
+.test-lifecycle/
+out/
+*.class
+*.key
+*.p12
+LOCAL-PRIVATE-KEY/
+EV6_KR_Wired_CarPlay_TBT_*_EXPERIMENTAL.zip

@@ -1,0 +1,51 @@
+{
+  "id": "ev6-kr-wired-carplay-tbt",
+  "name": "EV6 KOR Wired CarPlay TBT (experimental)",
+  "version": "0.1.3",
+  "hmgapi": ">=1.0.1",
+  "authors": [
+    "EV6 community experimental port"
+  ],
+  "license": "AGPL-3.0",
+  "description": "Experimental wired CarPlay TBT on CVEV KOR 260902. Serializes route refresh with USB session events and waits for new CarPlay guidance after a stock STOP. Vehicle TBT untested.",
+  "system": [
+    {
+      "model": [
+        "CVEV"
+      ],
+      "region": "KOR",
+      "firmware": "260902"
+    }
+  ],
+  "hooks": {
+    "jar": "hooks.jar",
+    "entry": "hmgapi.mods.ev6kr.WiredCarPlayTbt",
+    "points": {
+      "iap2.init_info.check_supports_features": "change",
+      "dipo.iap2_proxy.stop_route_guidance": "observe",
+      "framework.navigation_cluster.update_tbt_info": "replace",
+      "framework.navigation_cluster.update_tbt_sub_info": "replace",
+      "framework.navigation_cluster.update_tbt_sub_info_b": "replace",
+      "framework.navigation_cluster.update_tbt_sub_info2": "replace",
+      "framework.navigation_cluster.update_tbt_sub_info2_b": "replace",
+      "framework.navigation_cluster.update_tbt_sub_info_2c": "replace",
+      "framework.navigation_cluster.update_remain_dis": "replace",
+      "framework.navigation_cluster.update_tp_crossroad_name": "replace",
+      "framework.navigation_cluster.update_tp_destination_name": "replace",
+      "framework.navigation_cluster.update_tp_turn_list": "replace",
+      "framework.navigation_cluster.update_tp_turn_list_new": "replace",
+      "framework.navigation_cluster.update_tp_lane_info": "replace",
+      "dipo.carplay.session_started": "observe",
+      "dipo.carplay.session_finalized": "observe"
+    }
+  },
+  "logs": {
+    "tags": [
+      "DiPO",
+      "Iap2"
+    ],
+    "match": [
+      "[ev6-kr-wired-carplay-tbt]"
+    ]
+  }
+}
