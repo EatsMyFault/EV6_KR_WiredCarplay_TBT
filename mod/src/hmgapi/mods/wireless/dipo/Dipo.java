@@ -20,7 +20,7 @@ import hmgapi.hook.MethodHook;
 import hmgapi.hook.ModContext;
 
 /**
- * EV6 CVEV KOR 260902, stock WIRED CarPlay only. Experimental v0.1.3.
+ * EV6 CVEV KOR 260902, stock WIRED CarPlay only. Experimental v0.1.4.
  * The transport and wireless bridge code from IONIQ5 is NOT included.
  * The listener/session ownership and CarPlay-specific guarding were informed by
  * b-lack-kr/ioniq5-external-wirelss-carplay (AGPL-3.0).
@@ -35,6 +35,7 @@ public final class Dipo {
     private static final int USB_COMPONENT = 1;
     private static final String[] RG_COMPONENTS = { "RouteGuidanceComponent0" };
     private static final long POLL_MS = 2000;
+    private static final long GUIDANCE_RECOVERY_MS = 2 * POLL_MS;
     private static final int MAX_RETRIES = 3;
 
     static ModContext mod;
@@ -52,8 +53,8 @@ public final class Dipo {
     private static int noListenerDeferrals;
     private static boolean pollRunning;
 
-    static void log(String s) { if (mod != null) mod.log("EV6_TBT_013: " + s); }
-    static void error(String s, Throwable t) { if (mod != null) mod.error("EV6_TBT_013: " + s, t); }
+    static void log(String s) { if (mod != null) mod.log("EV6_TBT_014: " + s); }
+    static void error(String s, Throwable t) { if (mod != null) mod.error("EV6_TBT_014: " + s, t); }
 
     public static void start(ModContext m, LoadedApp a) {
         mod = m;
@@ -113,7 +114,7 @@ public final class Dipo {
                 log("CLUSTER_UNAVAILABLE: listener disabled");
                 return false;
             }
-            HandlerThread thread = new HandlerThread("ev6-kr-cp-tbt-013");
+            HandlerThread thread = new HandlerThread("ev6-kr-cp-tbt-014");
             thread.start();
             handler = new Handler(thread.getLooper());
             turns = new CpTurns(app.context, cluster, new Runnable() {
@@ -121,16 +122,25 @@ public final class Dipo {
             });
             // Observe only. Do not replace the head unit's stock STOP call.
             mod.hook(app.classLoader, "dipo.iap2_proxy.stop_route_guidance", new MethodHook() {
-                @Override protected void beforeHookedMethod(Param p) {
-                    if (OWN.get() != null) return;
+                @Override protected void afterHookedMethod(Param p) {
+                    if (OWN.get() != null || p.getThrowable() != null
+                            || !Boolean.TRUE.equals(p.getResult())) return;
+                    final RgListener target = listener;
                     post(new Runnable() {
                         @Override public void run() {
-                            generation++;
+                            if (!active() || !current(target)) return;
+                            final int token = ++generation;
                             resetRequest();
                             waitingForGuidance = true;
                             lastGuiding = guiding();
+                            turns.reset();
                             turns.stop();
                             log("STOCK_STOP observed; waiting for CarPlay guidance to resume");
+                            handler.postDelayed(new Runnable() {
+                                @Override public void run() {
+                                    recoverGuidanceAfterStop(token, target);
+                                }
+                            }, GUIDANCE_RECOVERY_MS);
                         }
                     });
                 }
@@ -236,7 +246,11 @@ public final class Dipo {
                         log("GUIDANCE_STATE active=" + now);
                         if (now) {
                             waitingForGuidance = false;
-                            if (!requested) schedule(450, "guidance-became-active");
+                            if (!requested) {
+                                // Attempts made before this route started must not consume its budget.
+                                attempts = 0;
+                                schedule(450, "guidance-became-active");
+                            }
                             else if (rxTotal == 0 && !guideRepeatSent) {
                                 guideRepeatSent = true;
                                 // Same START as the original request; intentionally
@@ -266,18 +280,30 @@ public final class Dipo {
                 if (generation != token) return;
                 requestPending = false;
                 if (active() && (!requested || "guidance-repeat-start".equals(reason)))
-                    request(reason);
+                    request(reason, true);
             }
         }, delay);
     }
 
-    private static void request(String reason) {
+    /** A brief off/on transition can fall between polls. Probe only with current CarPlay ownership. */
+    private static void recoverGuidanceAfterStop(int token, RgListener target) {
+        if (generation != token || !waitingForGuidance || !active()
+                || !current(target) || !guiding()) return;
+        log("GUIDANCE_RECOVERY: CarPlay still reports active guidance");
+        request("guidance-after-stock-stop", false);
+        if (requested) {
+            lastGuiding = true;
+            waitingForGuidance = false;
+        }
+    }
+
+    private static void request(String reason, boolean retry) {
         final RgListener target = listener;
         if (!current(target)) {
             noListenerDeferrals++;
             if (noListenerDeferrals <= MAX_RETRIES)
                 log("REQUEST_DEFERRED no-current-listener count=" + noListenerDeferrals);
-            if (noListenerDeferrals < MAX_RETRIES)
+            if (retry && noListenerDeferrals < MAX_RETRIES)
                 schedule(1700, "listener-not-ready");
             return;
         }
@@ -288,7 +314,9 @@ public final class Dipo {
             boolean ok = target.service.Iap2SvcStartRouteGuidanceUpdate(RG_COMPONENTS, true, true);
             requested = ok;
             log("REQUEST_START accepted=" + ok + " attempt=" + attempts + " reason=" + reason);
-            if (!ok) schedule(2700, "rejected-retry");
+            if (!ok) {
+                if (retry) schedule(2700, "rejected-retry");
+            }
             else if (rxTotal == 0) {
                 final int token = generation;
                 handler.postDelayed(new Runnable() {
@@ -300,7 +328,7 @@ public final class Dipo {
             }
         } catch (Throwable t) {
             error("REQUEST_START_EXCEPTION", t);
-            schedule(2700, "exception-retry");
+            if (retry) schedule(2700, "exception-retry");
         }
     }
 
@@ -325,7 +353,7 @@ public final class Dipo {
                 OWN.set(Boolean.TRUE);
                 boolean stopped = target.service.Iap2SvcStopRouteGuidanceUpdate(RG_COMPONENTS);
                 log("SOURCE_SWITCH_STOP accepted=" + stopped);
-                if (!stopped) return;
+                if (!stopped && !guiding()) return;
             } catch (Throwable t) {
                 error("SOURCE_SWITCH_STOP", t);
                 return;

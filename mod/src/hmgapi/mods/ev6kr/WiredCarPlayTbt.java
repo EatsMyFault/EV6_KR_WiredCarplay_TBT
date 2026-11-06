@@ -8,7 +8,7 @@ import hmgapi.hook.ModEntry;
 import hmgapi.hook.Points;
 
 /**
- * EV6 KOR 260902 wired CarPlay TBT only (v0.1.3, not vehicle validated).
+ * EV6 KOR 260902 wired CarPlay TBT only (v0.1.4, not vehicle validated).
  *
  * No GPM (Android Auto), Bluetooth bridge, wireless projection, audio conversion,
  * Wi-Fi feature flags or native patches are ever requested.
@@ -42,7 +42,7 @@ public final class WiredCarPlayTbt extends ModEntry {
 
     private void nav(final ModContext mod, final LoadedApp app) {
         if (!mod.settingBoolean("yield_stock", true)) {
-            mod.log("EV6_TBT_013: NATIVE_YIELD_DISABLED");
+            mod.log("EV6_TBT_014: NATIVE_YIELD_DISABLED");
             return;
         }
         MethodHook yieldToPhone = new MethodHook() {
@@ -54,7 +54,15 @@ public final class WiredCarPlayTbt extends ModEntry {
         for (String p : NAVI_TBT) {
             mod.hook(null, "framework.navigation_cluster." + p, yieldToPhone);
         }
-        mod.log("EV6_TBT_013: stock navigation yields TBT calls ONLY while CarPlay guides");
+        mod.hook(null, "framework.navigation_cluster.update_lane_info", new MethodHook() {
+            @Override
+            protected void beforeHookedMethod(Param p) {
+                byte[] frame = (byte[]) p.args[0];
+                if (frame != null && frame.length > 0 && frame[0] == (byte) 0xF1
+                        && Car.carPlayGuiding(app.context)) p.setResult(null);
+            }
+        });
+        mod.log("EV6_TBT_014: stock navigation yields TBT calls ONLY while CarPlay guides");
     }
 
     private void iap2(final ModContext mod, final LoadedApp app) {
@@ -64,7 +72,7 @@ public final class WiredCarPlayTbt extends ModEntry {
             protected void afterHookedMethod(Param p) {
                 try {
                     Points.field(cl, "iap2.init_info.route_guidance").setInt(null, 1);
-                    mod.log("EV6_TBT_013: RG_ADVERTISED");
+                    mod.log("EV6_TBT_014: RG_ADVERTISED");
                 } catch (Throwable t) {
                     mod.error("Wired CarPlay TBT: iAP2 RouteGuidance", t);
                 }
