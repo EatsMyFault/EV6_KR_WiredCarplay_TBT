@@ -1,13 +1,13 @@
 {
   "id": "ev6-kr-wired-carplay-tbt",
   "name": "EV6 KOR Wired CarPlay TBT (experimental)",
-  "version": "0.1.4",
+  "version": "0.1.6",
   "hmgapi": ">=1.0.1",
   "authors": [
     "EV6 community experimental port"
   ],
   "license": "AGPL-3.0",
-  "description": "Experimental wired CarPlay TBT on CVEV KOR 260902. Recovers guidance after app switches, improves turn and distance output, and protects phone lane guidance. Vehicle TBT untested.",
+  "description": "Experimental wired CarPlay TBT on CVEV KOR 260902. Displays recognized turns without an exit angle, clears obsolete arrows, and logs maneuver diagnostics. Vehicle validation pending.",
   "system": [
     {
       "model": [

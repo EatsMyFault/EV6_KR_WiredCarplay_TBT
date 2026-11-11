@@ -7,6 +7,7 @@ import com.tcc.iap2.Iap2NotiMsg;
 
 import java.util.Calendar;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 import hmgapi.hook.Car;
 import hmgapi.hook.Cluster;
@@ -35,6 +36,7 @@ import hmgapi.hook.Cluster;
  * One thread: every call comes from the same handler.
  */
 final class CpTurns {
+    private static final int MAX_STEP_LOGS = 120;
     final Context context;
     final Cluster cluster;
     /** Queues a guidance refresh on the same handler that parses messages. */
@@ -46,6 +48,7 @@ final class CpTurns {
     String source;
     private Integer turnOwner, roadOwner, tripOwner, destinationOwner;
     private boolean lanesShown, hudDistanceShown;
+    private int stepLogs;
     /** last HUD list sent (type, next, road), so an unchanged one isn't resent */
     int hudType = -1, hudNext;
     String hudRoad;
@@ -62,13 +65,21 @@ final class CpTurns {
         sourceCheck(msg);
         int[] ids = componentIds(msg);
         if (ids == null) {
-            for (Integer id : updates.keySet()) updateRoute(id, msg);
+            for (Integer id : knownComponents()) updateRoute(id, msg);
             return;
         }
         for (int id : ids) updateRoute(id, msg);
     }
 
+    /** A component may be introduced by either kind of message. */
+    private LinkedHashSet<Integer> knownComponents() {
+        LinkedHashSet<Integer> known = new LinkedHashSet<Integer>(updates.keySet());
+        known.addAll(maneuvers.keySet());
+        return known;
+    }
+
     private void updateRoute(Integer id, Iap2NotiMsg msg) {
+        if (id < 0) return;
         Update u = updates.get(id);
         boolean ended = false;
         if (u == null) {
@@ -138,28 +149,26 @@ final class CpTurns {
         }
         if (index < 0) return;
         if (ids == null) {
-            for (Integer id : maneuvers.keySet()) {
-                LinkedHashMap<Integer, Maneuver> m = maneuvers.get(id);
-                if (m == null) continue;
-                Maneuver x = m.get(index);
-                if (x != null) x.read(index, id, msg);
-                else m.put(index, new Maneuver(index, id, msg));
-            }
+            for (Integer id : knownComponents()) updateManeuver(id, index, msg);
             return;
         }
-        for (int k = 0; k < ids.length; k++) {
-            int id = ids[k];
-            LinkedHashMap<Integer, Maneuver> m = maneuvers.get(id);
-            if (m != null) {
-                Maneuver x = m.get(index);
-                if (x != null) x.read(index, id, msg);
-                else m.put(index, new Maneuver(index, id, msg));
-            } else {
-                m = new LinkedHashMap<Integer, Maneuver>();
-                m.put(index, new Maneuver(index, id, msg));
-                maneuvers.put(id, m);
-            }
+        for (int id : ids) updateManeuver(id, index, msg);
+    }
+
+    private void updateManeuver(int id, int index, Iap2NotiMsg msg) {
+        if (id < 0) return;
+        LinkedHashMap<Integer, Maneuver> m = maneuvers.get(id);
+        if (m == null) {
+            m = new LinkedHashMap<Integer, Maneuver>();
+            maneuvers.put(id, m);
         }
+        Maneuver x = m.get(index);
+        if (x != null) x.read(index, id, msg);
+        else m.put(index, new Maneuver(index, id, msg));
+        Update u = updates.get(id);
+        // A route update may name the next turn before its maneuver details arrive.
+        if (u != null && u.state != 0 && u.list != null && u.list.length > 0
+                && u.list[0] == index) turn(id, u);
     }
 
     /** LaneGuidance (the build's applyLanes): up to 8 lanes as the cluster's 0xF1 frame */
@@ -264,6 +273,7 @@ final class CpTurns {
 
     /** forget every component's state and maneuvers (DiPO e/u.nT) */
     void reset() {
+        stepLogs = 0;
         for (LinkedHashMap<Integer, Maneuver> m : maneuvers.values()) {
             if (m != null) m.clear();
         }
@@ -303,20 +313,39 @@ final class CpTurns {
             if (id.equals(destinationOwner)) clearDestination();
             return;
         }
-        int[] list = u.list == null ? null : u.list.clone();
+        int[] list = u.list;
         if (u.state == 6 && u.destination != null && !u.destination.isEmpty()) {
             cluster.destinationName(0, u.destination);
             destinationOwner = id;
         }
+        if (list == null || list.length == 0) {
+            u.missingTurnIndex = -1;
+            if (id.equals(turnOwner)) clearTurn();
+            logStep(id, u, -1, null, 0, -1f, -1);
+            return;
+        }
+        int index = list[0];
         LinkedHashMap<Integer, Maneuver> m = maneuvers.get(id);
-        if (m == null || list == null || list.length == 0) return;
-        Maneuver x = m.get(list[0]);
-        if (x == null) return;
-        int icon = icon(x.type, x.side, x.junction, x.exit, u.state);
-        if (icon == 0 && x.hasExit) icon = ordinaryTurnIcon(x.type, x.side, x.junction, x.exit);
+        Maneuver x = m == null ? null : m.get(index);
+        if (x == null) {
+            if (id.equals(turnOwner)) clearTurn();
+            if (u.missingTurnIndex != index) {
+                u.missingTurnIndex = index;
+                Dipo.log("CarPlay TBT: waiting for maneuver index=" + index + " component=" + id);
+            }
+            logStep(id, u, index, null, 0, -1f, -1);
+            return;
+        }
+        u.missingTurnIndex = -1;
+        int icon = displayIcon(x, u.state);
         cluster.crossroadName(x.afterRoad);
         roadOwner = id;
-        if (icon == 0) return;
+        if (icon == 0) {
+            if (id.equals(turnOwner)) clearTurn();
+            if (tripOwner == null || id.equals(tripOwner)) sendTrip(id, u);
+            logStep(id, u, index, x, 0, -1f, -1);
+            return;
+        }
         int unit = displayUnit(u.nextUnits);
         float dist = unit >= 0 ? displayDistance(u.nextStr) : -1f;
         if (dist < 0f && u.distNext >= 0) {
@@ -332,6 +361,23 @@ final class CpTurns {
         else clearHudDistance();
         sendTrip(id, u);
         sendAhead(id, u);
+        logStep(id, u, index, x, icon, dist, unit);
+    }
+
+    /** Record changed step data without addresses, coordinates, or instruction text. */
+    private void logStep(int id, Update u, int index, Maneuver x, int icon, float distance, int unit) {
+        if (stepLogs >= MAX_STEP_LOGS) return;
+        int next = u.list != null && u.list.length > 1 ? u.list[1] : -1;
+        String geometry = x == null ? "none" : x.type + "/" + x.side + "/" + x.junction
+                + "/" + (x.hasExit ? Integer.toString(x.exit) : "none");
+        String step = u.state + " " + index + " " + next + " " + geometry + " " + icon;
+        if (step.equals(u.loggedStep)) return;
+        u.loggedStep = step;
+        stepLogs++;
+        Dipo.log("RG_STEP component=" + id + " state=" + u.state + " index=" + index
+                + " nextIndex=" + next + " type/side/junction/exit=" + geometry + " icon=" + icon
+                + " rawMeters=" + u.distNext + " textDistance=" + displayDistance(u.nextStr)
+                + " textUnit=" + u.nextUnits + " displayDistance=" + distance + " displayUnit=" + unit);
     }
 
     private static int displayUnit(int unit) {
@@ -367,6 +413,48 @@ final class CpTurns {
             return exit > 110 ? 68 : exit < 70 ? 66 : 67;
         }
         return 0;
+    }
+
+    private static int displayIcon(Maneuver x, int state) {
+        int exit = x.exit;
+        if (exit > 180 && exit <= 360) exit -= 360;
+        else if (exit < -180 && exit >= -360) exit += 360;
+        int exact = x.junction == 1 && !x.hasExit ? 0 : icon(x.type, x.side, x.junction, exit, state);
+        if (exact != 0) return exact;
+        int ordinary = ordinaryTurnIcon(x.type, x.side, x.junction, exit);
+        if (ordinary != 0) return ordinary;
+        if (x.junction == 1) {
+            if (x.type == 6 && !x.hasExit) return x.side == 1 ? 97 : 96;
+            if (x.hasExit && (x.type == 1 || x.type == 2 || x.type == 6 || x.type == 7
+                    || (x.type >= 28 && x.type <= 35))) {
+                return roundaboutIcon(exit);
+            }
+            return 0;
+        }
+        if (x.junction != 0) return 0;
+        // These maneuver types carry their direction even when the optional angle is missing.
+        switch (x.type) {
+            case 1: case 20: return 70;              // left
+            case 2: case 21: return 67;              // right
+            case 3: return 65;                      // straight
+            case 4: case 18: case 26: return x.side == 1 ? 73 : 72;
+            case 6: return x.side == 1 ? 97 : 96;   // roundabout entry
+            case 13: case 49: return 71;            // keep/slight left
+            case 14: case 50: return 66;            // keep/slight right
+            case 47: return 69;                     // sharp left
+            case 48: return 68;                     // sharp right
+            default: return 0;
+        }
+    }
+
+    /** The Gen5W roundabout icons in 45-degree bands (Korea Projection 2.3.0). */
+    private static int roundaboutIcon(int exit) {
+        int angle = Math.abs(exit);
+        if (angle > 180) return 0;
+        if (angle <= 22) return 96;
+        if (angle >= 158) return 102;
+        if (exit > 0) return angle <= 67 ? 97 : angle <= 112 ? 99 : 100;
+        return angle <= 67 ? 107 : angle <= 112 ? 105 : 104;
     }
 
     /**
@@ -691,6 +779,8 @@ final class CpTurns {
     static final class Update {
         int state, maneuverState, distLeft, distLeftUnits, count, laneIndex, laneCount;
         int distNext = -1, nextUnits = -1;
+        int missingTurnIndex = -1;
+        String loggedStep;
         String road, destination, distLeftStr, nextStr, sourceName;
         long eta, timeLeft;
         int[] list;
@@ -716,6 +806,8 @@ final class CpTurns {
             distNext = -1;
             nextStr = "";
             nextUnits = -1;
+            missingTurnIndex = -1;
+            loggedStep = null;
             list = null;
             count = 0;
             visible = false;
@@ -853,12 +945,12 @@ final class CpTurns {
             linkedLane = 0;
         }
 
-        /** as DiPO, the exit angle resets with every update (it's only kept if this one carries it) */
+        /** Partial distance or road updates retain the last known maneuver geometry. */
         void read(int index, int id, Iap2NotiMsg msg) {
             Iap2NotiMsg.Iap2ObjGroup g = msg.getItemGroup();
             this.index = index;
-            exit = 0;
-            hasExit = false;
+            int oldSide = side, oldJunction = junction;
+            boolean exitPresent = false, typePresent = false;
             for (int k = 0; k < g.getItemCnt(); k++) {
                 Iap2NotiMsg.Iap2ObjItem it = g.getObjItem(k);
                 int item = it.getItemId(), n = it.getItemObjCount();
@@ -872,9 +964,10 @@ final class CpTurns {
                             } else {
                                 angles = null;
                             }
-                        } else if (item == 11 && v != null && v.length > 0) {
-                            exit = v[0];
-                            hasExit = true;
+                        } else if (item == 11) {
+                            exitPresent = true;
+                            hasExit = v != null && v.length > 0;
+                            exit = hasExit ? v[0] : 0;
                         }
                         break;
                     }
@@ -892,7 +985,7 @@ final class CpTurns {
                         int[] v = n > 0 ? it.getItemIntArray() : null;
                         if (v == null) break;
                         switch (item) {
-                            case 3: type = v[0]; break;
+                            case 3: type = v[0]; typePresent = true; break;
                             case 7: distUnits = v[0]; break;
                             case 8: side = v[0]; break;
                             case 9: junction = v[0]; break;
@@ -910,6 +1003,10 @@ final class CpTurns {
                         break;
                     }
                 }
+            }
+            if (!exitPresent && (typePresent || oldSide != side || oldJunction != junction)) {
+                exit = 0;
+                hasExit = false;
             }
         }
     }

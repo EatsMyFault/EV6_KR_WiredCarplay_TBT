@@ -36,7 +36,7 @@ cp "$base/mod/mod.json" "$base/mod/settings.json" "$work/payload/"
 cp -R "$base/mod/stubs" "$work/payload/"
 java -cp "$repo/out/engine-host" "$signing" sign "$work/payload" "$key"
 
-artifact=EV6_KR_Wired_CarPlay_TBT_v0.1.4_EXPERIMENTAL.zip
+artifact=EV6_KR_Wired_CarPlay_TBT_v0.1.6_EXPERIMENTAL.zip
 python3 - "$work/payload" "$work/$artifact" <<'PY'
 from pathlib import Path
 import sys

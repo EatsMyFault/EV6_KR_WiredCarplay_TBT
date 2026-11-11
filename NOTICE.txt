@@ -1,4 +1,4 @@
-EV6 KOR wired Apple CarPlay TBT v0.1.4 experimental source and local builder.
+EV6 KOR wired Apple CarPlay TBT v0.1.6 source and local builder.
 The signed mod archive is built from mod/. The signing key is external.
 
 Upstream HMG-API v1.0.1 by VysseCodes, AGPL-3.0:
@@ -10,5 +10,13 @@ This mod is a derivative of HMG-API v1.0.1 and uses ideas from the IONIQ 5
 project. Its CpTurns.java is based on the upstream HMG-API implementation.
 The revised v0.1.4 adds angle and distance fallback, lane overwrite
 protection, and owner-scoped display clearing to the subscription fixes.
+Version 0.1.5 refreshes the displayed turn when late maneuver details arrive
+and reports received messages separately by type.
+Version 0.1.6 handles turns without an exit angle, preserves angles during
+partial updates, and clears an obsolete arrow when the new step has no icon.
+The added turn fallback and roundabout mappings reference Korea Projection's
+HMG-API fork by StopDragon (AGPL-3.0), with ideas credited there to HMG-Seogaemo:
+https://github.com/StopDragon/HMG-API/blob/38b4432/mods/wireless-carplay-aa/src/hmgapi/mods/wireless/dipo/CpTurns.java
 
-Vehicle operation, support, compatibility, and safety are unverified.
+Wired CarPlay turn updates and rerouting were verified on a Korean EV6
+(CVEV KOR 260902). The project is provided without warranty under AGPL-3.0.

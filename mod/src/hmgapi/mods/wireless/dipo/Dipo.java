@@ -20,7 +20,7 @@ import hmgapi.hook.MethodHook;
 import hmgapi.hook.ModContext;
 
 /**
- * EV6 CVEV KOR 260902, stock WIRED CarPlay only. Experimental v0.1.4.
+ * EV6 CVEV KOR 260902, stock WIRED CarPlay only. Experimental v0.1.6.
  * The transport and wireless bridge code from IONIQ5 is NOT included.
  * The listener/session ownership and CarPlay-specific guarding were informed by
  * b-lack-kr/ioniq5-external-wirelss-carplay (AGPL-3.0).
@@ -53,8 +53,8 @@ public final class Dipo {
     private static int noListenerDeferrals;
     private static boolean pollRunning;
 
-    static void log(String s) { if (mod != null) mod.log("EV6_TBT_014: " + s); }
-    static void error(String s, Throwable t) { if (mod != null) mod.error("EV6_TBT_014: " + s, t); }
+    static void log(String s) { if (mod != null) mod.log("EV6_TBT_016: " + s); }
+    static void error(String s, Throwable t) { if (mod != null) mod.error("EV6_TBT_016: " + s, t); }
 
     public static void start(ModContext m, LoadedApp a) {
         mod = m;
@@ -419,20 +419,21 @@ public final class Dipo {
                 @Override public void run() {
                     if (!current(RgListener.this) || !active() || waitingForGuidance) return;
                     rxTotal++;
-                    if (what == RG_UPDATE) rxRoute++;
-                    else if (what == RG_MANEUVER) rxManeuver++;
-                    else rxLanes++;
-                    if (rxTotal <= 8 || rxTotal % 50 == 0)
-                        log("RG_RECEIVED type=" + what + " count=" + rxTotal
+                    final int typeCount;
+                    if (what == RG_UPDATE) typeCount = ++rxRoute;
+                    else if (what == RG_MANEUVER) typeCount = ++rxManeuver;
+                    else typeCount = ++rxLanes;
+                    if (typeCount <= 3 || typeCount % 50 == 0)
+                        log("RG_RECEIVED type=" + what + " count=" + typeCount
+                                + " routes=" + rxRoute + " maneuvers=" + rxManeuver + " lanes=" + rxLanes
                                 + " guide=" + guiding() + " null=" + (msg == null));
                     if (msg == null) return;
-                    // The original HMG-API v1.0.1 CpTurns parser is preserved.
                     // "PARSED" proves code ran, not that a cluster/HUD displayed it.
                     try {
                         if (what == RG_UPDATE) turns.routeGuidance(msg);
                         else if (what == RG_MANEUVER) turns.maneuver(msg);
                         else turns.lanes(msg);
-                        if (rxTotal <= 3) log("RG_PARSED type=" + what);
+                        if (typeCount <= 3) log("RG_PARSED type=" + what);
                     } catch (Throwable t) {
                         error("RG_PARSE_FAILED type=" + what, t);
                     }
