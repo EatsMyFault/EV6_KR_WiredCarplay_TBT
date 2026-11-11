@@ -53,7 +53,7 @@ CarPlay에서 평소 사용하는 지도 앱을 열고 목적지를 설정합니
 | 모드는 보이지만 적용되지 않음 | **Hooks on**, `CVEV / KOR / 260902`, **Mods**의 활성 상태, **Apply changes**에 표시된 오류 또는 재시작 안내를 확인합니다. |
 | CarPlay 길안내는 되지만 계기판이나 HUD가 갱신되지 않음 | 정차 후 **HMG-API → Logs**에서 `EV6_TBT_016`을 찾습니다. `RG_RECEIVED`는 안내 메시지 수신, `RG_STEP`은 회전 번호와 모드가 선택한 화살표 및 거리를 보여줍니다. |
 
-증상을 제보할 때는 차량 펌웨어, HMG-API와 TBT 모드 버전, 지도 앱 이름, 문제가 난 상황과 관련 로그를 함께 적어 주세요. 공개 이슈에 올리기 전에 VIN, 기기 식별 정보, 목적지 등 개인 정보가 보이는지 확인하세요. [문제 제보](https://github.com/EatsMyFault/EV6_KR_WiredCarplay_TBT/issues)
+증상을 제보할 때는 차량 펌웨어, HMG-API와 TBT 모드 버전, 지도 앱 이름, 문제가 난 상황과 관련 로그를 함께 적어 주세요. 공개 이슈에 올리기 전에 VIN, 기기 식별 정보, 목적지 등 개인 정보를 가려 주세요. [문제 제보 양식](https://github.com/EatsMyFault/EV6_KR_WiredCarplay_TBT/issues/new?template=bug-report.yml)
 
 ## 끄거나 삭제하기
 

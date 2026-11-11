@@ -55,7 +55,7 @@ F:\HMGAPI\updates\EV6_KR_Wired_CarPlay_TBT_v0.1.6_EXPERIMENTAL.zip
 | CarPlay는 열리지만 안내가 안 보이거나 이전 안내가 남음 | **Mods → 모드 로그** 또는 **Logs**에서 `EV6_TBT_016`을 찾습니다. `REQUEST_START accepted=true`는 요청 수락, `RG_RECEIVED`는 데이터 수신을 뜻합니다. `RG_STEP`에는 현재 회전 번호, 선택한 아이콘, 모드가 받은 거리와 표시용 거리가 기록됩니다. |
 | 사용을 중단하거나 원래 동작으로 돌아가고 싶음 | HMG-API **Mods**에서 EV6 TBT 모드를 **Off** 또는 **Remove**로 바꾸고 **Apply changes**를 누릅니다. 재시작 안내가 나오면 따릅니다. 앱을 열 수 없다면 [HMG-API 문제 해결 안내](https://github.com/VysseCodes/HMG-API/wiki/Troubleshooting)를 확인합니다. |
 
-동작 결과를 남길 때는 전체 펌웨어 버전, HMG-API 버전, 지도 앱 이름, 계기판/HUD 각각의 결과와 관련 로그를 함께 적어 주세요. 공개 이슈에 VIN이나 기기 식별 정보는 포함하지 마세요.
+설치 오류나 길안내 문제는 GitHub 양식에 차량 펌웨어, 모드 버전, 증상을 적어 주세요. 공개 이슈에 첨부하는 로그나 사진에서는 VIN과 위치 등 개인 정보를 가려 주세요. [문제 제보 양식](https://github.com/EatsMyFault/EV6_KR_WiredCarplay_TBT/issues/new?template=bug-report.yml)
 
 ## v0.1.6에서 바뀐 점
 

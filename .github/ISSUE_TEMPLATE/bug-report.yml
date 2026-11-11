@@ -1,0 +1,75 @@
+name: EV6 유선 CarPlay TBT 문제 제보
+description: 설치 오류, 길안내 표시, 재탐색 또는 안내 종료 문제를 제보합니다.
+title: "[문제 제보] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        설치 중 문제가 생겼다면 [설치 가이드](https://github.com/EatsMyFault/EV6_KR_WiredCarplay_TBT/blob/main/docs/install-guide.md)를 먼저 확인해 주세요.
+
+        이슈는 공개됩니다. 로그와 사진을 첨부하기 전에 VIN, 번호판, 기기 식별 정보, 전화번호, 위치와 목적지를 가려 주세요.
+  - type: input
+    id: firmware
+    attributes:
+      label: 차량 내비 소프트웨어 버전
+      description: 차량 설정의 SW 정보에 표시되는 전체 버전을 적어 주세요. 확인이 어렵다면 모름이라고 적어 주세요.
+      placeholder: "예시 CVEV.KOR.0000.V039.001.260902"
+    validations:
+      required: true
+  - type: input
+    id: tbt-version
+    attributes:
+      label: EV6 TBT 모드 버전
+      description: 설치를 완료하지 못했다면 받은 ZIP의 버전을 적어 주세요.
+      placeholder: "예시 v0.1.6"
+    validations:
+      required: true
+  - type: input
+    id: hmg-api-version
+    attributes:
+      label: HMG-API 버전
+      description: HMG-API 앱 상단의 버전과 Hooks 상태를 적어 주세요. 앱을 열 수 없다면 모름이라고 적어 주세요.
+      placeholder: "예시 1.0.2 / Hooks on"
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: 문제가 발생한 단계
+      options:
+        - USB에서 설치 ZIP 확인
+        - 모드 설치 또는 적용
+        - 길안내 시작 또는 다음 회전으로 전환
+        - 경로 재탐색
+        - 길안내 취소 또는 종료
+        - 기타
+    validations:
+      required: true
+  - type: input
+    id: navigation-app
+    attributes:
+      label: 지도 앱
+      description: 길안내 중 발생한 문제라면 사용한 앱을 적어 주세요.
+      placeholder: "예시 네이버지도, 티맵, 카카오내비, Apple 지도"
+  - type: textarea
+    id: steps
+    attributes:
+      label: 문제가 발생하기까지의 순서
+      description: 어떤 작업을 했고 얼마나 자주 발생하는지 적어 주세요.
+      placeholder: "예시 유선 CarPlay로 연결한 뒤 길안내를 시작하고, 경로가 재탐색된 직후 발생했습니다."
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: 실제 증상과 기대한 동작
+      description: 길안내 문제라면 CarPlay 화면, 계기판, HUD에 각각 무엇이 표시됐는지 적어 주세요. HUD가 없는 차량은 미장착이라고 적으면 됩니다.
+      placeholder: "예시 CarPlay에 새 우회전 안내가 떴지만 계기판에는 이전 직진 화살표가 남았습니다. 새 우회전 화살표와 거리가 표시되기를 기대했습니다."
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 로그 또는 사진
+      description: 정차 후 HMG-API의 Logs에서 문제가 난 시각 전후의 EV6_TBT_ 로그를 확인해 주세요. 설치 문제라면 화면에 표시된 오류 문구를 붙여 넣어도 됩니다.
+      placeholder: "오류 문구, 관련 로그 또는 개인 정보를 가린 사진을 추가해 주세요."
