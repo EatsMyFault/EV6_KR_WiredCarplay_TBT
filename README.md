@@ -4,6 +4,7 @@
 
 **최신 정식 릴리스 v0.1.6** · [설치 ZIP 다운로드](https://github.com/EatsMyFault/EV6_KR_WiredCarplay_TBT/releases/download/v0.1.6/EV6_KR_Wired_CarPlay_TBT_v0.1.6_EXPERIMENTAL.zip)
 · [v0.1.6 릴리스](https://github.com/EatsMyFault/EV6_KR_WiredCarplay_TBT/releases/tag/v0.1.6)
+· [처음 설치하는 분을 위한 가이드](docs/install-guide.md)
 · [버전별 변경 내역](CHANGELOG.md)
 
 > **실차 확인** · 한국 내수형 EV6 표준형 5W(`CVEV / KOR / 260902`)의 유선 CarPlay에서 회전 안내 전환과 경로 재탐색 후 안내가 정상 작동했습니다. 설치와 첫 확인은 주차 상태에서 진행하세요.
